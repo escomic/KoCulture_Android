@@ -1,0 +1,28 @@
+package com.devsimtaku.koculture.core.domain.model
+
+data class CulturalEvent(
+    val codeName: String,
+    val district: String,
+    val title: String,
+    val date: String,
+    val place: String,
+    val organizationName: String,
+    val targetUser: String,
+    val fee: String,
+    val inquiry: String,
+    val player: String,
+    val program: String,
+    val description: String,
+    val organizationLink: String,
+    val imageUrl: String,
+    val registrationDate: String,
+    val ticket: String,
+    val startDate: String,
+    val endDate: String,
+    val themeCode: String,
+    val longitude: String,
+    val latitude: String,
+    val isFree: Boolean,
+    val detailUrl: String,
+    val time: String,
+)
