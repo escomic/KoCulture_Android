@@ -1,6 +1,7 @@
 package com.devsimtaku.koculture.core.domain.model
 
 class KoCultureApiException(
-    val code: String,
+    val errorCode: KoCultureApiErrorCode,
+    val rawCode: String,
     override val message: String,
 ) : RuntimeException(message)

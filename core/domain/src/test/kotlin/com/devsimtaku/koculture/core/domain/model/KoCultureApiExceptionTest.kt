@@ -8,11 +8,13 @@ class KoCultureApiExceptionTest {
     @Test
     fun `API 에러 코드와 메시지를 보존한다`() {
         val exception = KoCultureApiException(
-            code = "ERROR-300",
+            errorCode = KoCultureApiErrorCode.MissingRequiredValue,
+            rawCode = "ERROR-300",
             message = "필수 값이 누락되었습니다",
         )
 
-        assertEquals("ERROR-300", exception.code)
+        assertEquals(KoCultureApiErrorCode.MissingRequiredValue, exception.errorCode)
+        assertEquals("ERROR-300", exception.rawCode)
         assertEquals("필수 값이 누락되었습니다", exception.message)
     }
 }

@@ -1,6 +1,7 @@
 package com.devsimtaku.koculture.core.network.model
 
 import com.devsimtaku.koculture.core.domain.model.KoCultureApiException
+import com.devsimtaku.koculture.core.domain.model.KoCultureApiErrorCode
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -30,10 +31,13 @@ data class SeoulApiResult(
 
 fun CulturalEventResponse.getOrThrow(): CulturalEventInfo {
     val result = culturalEventInfo.result
-    if (result.code == "INFO-000") return culturalEventInfo
+    val errorCode = KoCultureApiErrorCode.fromCode(result.code)
+
+    if (errorCode == KoCultureApiErrorCode.Normal) return culturalEventInfo
 
     throw KoCultureApiException(
-        code = result.code,
+        errorCode = errorCode,
+        rawCode = result.code,
         message = result.message,
     )
 }

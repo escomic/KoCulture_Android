@@ -1,6 +1,7 @@
 package com.devsimtaku.koculture.core.network.model
 
 import com.devsimtaku.koculture.core.domain.model.KoCultureApiException
+import com.devsimtaku.koculture.core.domain.model.KoCultureApiErrorCode
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -65,7 +66,8 @@ class CulturalEventResponseTest {
             response.getOrThrow()
         }
 
-        assertEquals("ERROR-300", exception.code)
+        assertEquals(KoCultureApiErrorCode.MissingRequiredValue, exception.errorCode)
+        assertEquals("ERROR-300", exception.rawCode)
         assertEquals("필수 값이 누락되었습니다", exception.message)
     }
 }
