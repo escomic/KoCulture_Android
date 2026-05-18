@@ -8,7 +8,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CulturalEventResponse(
     @SerialName("culturalEventInfo")
-    val culturalEventInfo: CulturalEventInfo,
+    val culturalEventInfo: CulturalEventInfo? = null,
+    @SerialName("RESULT")
+    val result: SeoulApiResult? = null,
 )
 
 @Serializable
@@ -30,10 +32,17 @@ data class SeoulApiResult(
 )
 
 fun CulturalEventResponse.getOrThrow(): CulturalEventInfo {
-    val result = culturalEventInfo.result
+    val result = culturalEventInfo?.result ?: result
+        ?: throw KoCultureApiException(
+            errorCode = KoCultureApiErrorCode.Unknown,
+            rawCode = KoCultureApiErrorCode.Unknown.code,
+            message = KoCultureApiErrorCode.Unknown.defaultMessage,
+        )
     val errorCode = KoCultureApiErrorCode.fromCode(result.code)
 
-    if (errorCode == KoCultureApiErrorCode.Normal) return culturalEventInfo
+    if (errorCode == KoCultureApiErrorCode.Normal && culturalEventInfo != null) {
+        return culturalEventInfo
+    }
 
     throw KoCultureApiException(
         errorCode = errorCode,

@@ -70,4 +70,29 @@ class CulturalEventResponseTest {
         assertEquals("ERROR-300", exception.rawCode)
         assertEquals("필수 값이 누락되었습니다", exception.message)
     }
+
+    @Test
+    fun `최상위 RESULT 에러 응답이면 API 예외를 던진다`() {
+        val response = json.decodeFromString<CulturalEventResponse>(
+            """
+            {
+              "RESULT": {
+                "CODE": "ERROR-500",
+                "MESSAGE": "서버 오류입니다.\n지속적으로 발생시 열린 데이터 광장으로 문의(Q&A) 바랍니다."
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val exception = assertThrows(KoCultureApiException::class.java) {
+            response.getOrThrow()
+        }
+
+        assertEquals(KoCultureApiErrorCode.ServerError, exception.errorCode)
+        assertEquals("ERROR-500", exception.rawCode)
+        assertEquals(
+            "서버 오류입니다.\n지속적으로 발생시 열린 데이터 광장으로 문의(Q&A) 바랍니다.",
+            exception.message,
+        )
+    }
 }

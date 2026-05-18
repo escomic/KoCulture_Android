@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.savedstate.compose)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     implementation(libs.hilt.android)
 
     ksp(libs.hilt.compiler)

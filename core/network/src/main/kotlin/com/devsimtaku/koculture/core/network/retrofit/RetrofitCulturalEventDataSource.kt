@@ -57,7 +57,7 @@ internal class RetrofitCulturalEventDataSource(
     private companion object {
         private const val BASE_URL = "http://openapi.seoul.go.kr:8088/"
         private const val TYPE_JSON = "json"
-        private const val SERVICE_NAME = "KoCultureAndroid"
+        private const val SERVICE_NAME = "culturalEventInfo"
     }
 }
 

@@ -23,7 +23,7 @@ class RetrofitCulturalEventDataSourceTest {
         )
 
         assertEquals(
-            "http://openapi.seoul.go.kr:8088/test-key/json/KoCultureAndroid/1/20",
+            "http://openapi.seoul.go.kr:8088/test-key/json/culturalEventInfo/1/20",
             api.recordedUrl,
         )
     }
@@ -45,7 +45,7 @@ class RetrofitCulturalEventDataSourceTest {
         )
 
         assertEquals(
-            "http://openapi.seoul.go.kr:8088/test-key/json/KoCultureAndroid/21/40///2026-07-30",
+            "http://openapi.seoul.go.kr:8088/test-key/json/culturalEventInfo/21/40///2026-07-30",
             api.recordedUrl,
         )
     }
@@ -66,7 +66,7 @@ class RetrofitCulturalEventDataSourceTest {
         )
 
         assertEquals(
-            "http://openapi.seoul.go.kr:8088/test-key/json/KoCultureAndroid/1/20/%EC%A0%84%EC%8B%9C%2F%EB%AF%B8%EC%88%A0/%EC%84%9C%EC%9A%B8%20%EC%9D%BC%EB%9F%AC%EC%8A%A4%ED%8A%B8",
+            "http://openapi.seoul.go.kr:8088/test-key/json/culturalEventInfo/1/20/%EC%A0%84%EC%8B%9C%2F%EB%AF%B8%EC%88%A0/%EC%84%9C%EC%9A%B8%20%EC%9D%BC%EB%9F%AC%EC%8A%A4%ED%8A%B8",
             api.recordedUrl,
         )
     }
