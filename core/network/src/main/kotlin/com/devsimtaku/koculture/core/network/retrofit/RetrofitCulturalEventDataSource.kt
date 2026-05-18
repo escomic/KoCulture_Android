@@ -34,18 +34,17 @@ internal class RetrofitCulturalEventDataSource(
         title: String?,
         date: String?,
     ): String {
-        val builder = BASE_URL.toHttpUrl().newBuilder()
-            .addPathSegment(serviceKey)
-            .addPathSegment(TYPE_JSON)
-            .addPathSegment(SERVICE_NAME)
-            .addPathSegment(startIndex.toString())
-            .addPathSegment(endIndex.toString())
+        val pathSegments = listOf(
+            serviceKey,
+            TYPE_JSON,
+            SERVICE_NAME,
+            startIndex.toString(),
+            endIndex.toString(),
+        ) + listOf(codeName, title, date).takeLastNonBlankPrefix()
 
-        listOf(codeName, title, date)
-            .takeLastNonBlankPrefix()
-            .forEach(builder::addPathSegment)
-
-        return builder.build().toString()
+        return BASE_URL + pathSegments.joinToString(separator = "/") { segment ->
+            segment.encodePathSegment()
+        }
     }
 
     private fun List<String?>.takeLastNonBlankPrefix(): List<String> {
@@ -60,4 +59,16 @@ internal class RetrofitCulturalEventDataSource(
         private const val TYPE_JSON = "json"
         private const val SERVICE_NAME = "KoCultureAndroid"
     }
+}
+
+private fun String.encodePathSegment(): String {
+    if (isEmpty()) return this
+
+    return "http://localhost/"
+        .toHttpUrl()
+        .newBuilder()
+        .addPathSegment(this)
+        .build()
+        .encodedPathSegments
+        .last()
 }
