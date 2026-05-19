@@ -14,17 +14,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -38,9 +49,11 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import com.devsimtaku.koculture.core.domain.model.CulturalEvent
+import com.devsimtaku.koculture.feature.seoul.contract.SeoulCultureCategory
 import com.devsimtaku.koculture.feature.seoul.contract.SeoulUiEffect
 import com.devsimtaku.koculture.feature.seoul.contract.SeoulUiEvent
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeoulCultureScreen(
     modifier: Modifier = Modifier,
@@ -49,6 +62,7 @@ fun SeoulCultureScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val culturalEvents = viewModel.culturalEvents.collectAsLazyPagingItems()
+    var showCategorySheet by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -60,20 +74,60 @@ fun SeoulCultureScreen(
         }
     }
 
-    SeoulContent(
+    Scaffold(
         modifier = modifier,
-        title = uiState.title,
-        culturalEvents = culturalEvents,
-        onEventClick = { culturalEvent ->
-            viewModel.sendEvent(SeoulUiEvent.OnEventClick(culturalEvent))
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = uiState.title,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
         },
-    )
+    ) { innerPadding ->
+        SeoulContent(
+            modifier = Modifier.padding(innerPadding),
+            selectedCategory = uiState.selectedCategory,
+            isFreeOnly = uiState.isFreeOnly,
+            culturalEvents = culturalEvents,
+            onCategoryClick = {
+                showCategorySheet = true
+            },
+            onFreeOnlyChange = { isFreeOnly ->
+                viewModel.sendEvent(SeoulUiEvent.OnFreeOnlyChange(isFreeOnly))
+            },
+            onEventClick = { culturalEvent ->
+                viewModel.sendEvent(SeoulUiEvent.OnEventClick(culturalEvent))
+            },
+        )
+    }
+
+    if (showCategorySheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showCategorySheet = false
+            },
+        ) {
+            CategoryBottomSheet(
+                selectedCategory = uiState.selectedCategory,
+                onCategorySelect = { category ->
+                    viewModel.sendEvent(SeoulUiEvent.OnCategorySelect(category))
+                    showCategorySheet = false
+                },
+            )
+        }
+    }
 }
 
 @Composable
 private fun SeoulContent(
-    title: String,
+    selectedCategory: SeoulCultureCategory,
+    isFreeOnly: Boolean,
     culturalEvents: LazyPagingItems<CulturalEvent>,
+    onCategoryClick: () -> Unit,
+    onFreeOnlyChange: (Boolean) -> Unit,
     onEventClick: (CulturalEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -97,17 +151,17 @@ private fun SeoulContent(
                 modifier = modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = 20.dp,
-                    top = 24.dp,
+                    top = 12.dp,
                     end = 20.dp,
                     bottom = 32.dp,
                 ),
             ) {
                 item {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold,
+                    FilterControls(
+                        selectedCategory = selectedCategory,
+                        isFreeOnly = isFreeOnly,
+                        onCategoryClick = onCategoryClick,
+                        onFreeOnlyChange = onFreeOnlyChange,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -157,6 +211,98 @@ private fun SeoulContent(
 }
 
 @Composable
+private fun FilterControls(
+    selectedCategory: SeoulCultureCategory,
+    isFreeOnly: Boolean,
+    onCategoryClick: () -> Unit,
+    onFreeOnlyChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Button(
+            modifier = Modifier.weight(1f),
+            onClick = onCategoryClick,
+        ) {
+            Text(
+                text = selectedCategory.label,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Row(
+            modifier = Modifier.height(48.dp),
+        ) {
+            Checkbox(
+                checked = isFreeOnly,
+                onCheckedChange = onFreeOnlyChange,
+            )
+            Text(
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .align(androidx.compose.ui.Alignment.CenterVertically),
+                text = "무료",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CategoryBottomSheet(
+    selectedCategory: SeoulCultureCategory,
+    onCategorySelect: (SeoulCultureCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+    ) {
+        Text(
+            text = "카테고리",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyColumn(
+            contentPadding = PaddingValues(bottom = 28.dp),
+        ) {
+            items(
+                items = SeoulCultureCategory.entries,
+                key = { category -> category.name },
+            ) { category ->
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onCategorySelect(category)
+                    },
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = category.label,
+                        color = if (category == selectedCategory) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                        fontWeight = if (category == selectedCategory) {
+                            FontWeight.Bold
+                        } else {
+                            FontWeight.Normal
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun CulturalEventListItem(
     culturalEvent: CulturalEvent,
     onClick: () -> Unit,
@@ -167,7 +313,7 @@ private fun CulturalEventListItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
     ) {
         Row(
@@ -308,7 +454,7 @@ private fun ErrorContent(
                 color = MaterialTheme.colorScheme.error,
             )
             Spacer(modifier = Modifier.height(12.dp))
-            androidx.compose.material3.Button(
+            Button(
                 onClick = onRetryClick,
             ) {
                 Text(text = "다시 시도")
@@ -345,7 +491,7 @@ private fun AppendErrorContent(
             color = MaterialTheme.colorScheme.error,
         )
         Spacer(modifier = Modifier.height(8.dp))
-        androidx.compose.material3.Button(
+        Button(
             onClick = onRetryClick,
         ) {
             Text(text = "다시 시도")
