@@ -7,8 +7,9 @@ import com.devsimtaku.koculture.feature.eventdetail.EventDetailScreen
 fun EntryProviderScope<NavKey>.eventDetailEntry(
     onBackClick: () -> Unit,
 ) {
-    entry<EventDetailNavKey> {
+    entry<EventDetailNavKey> { key ->
         EventDetailScreen(
+            culturalEvent = key.culturalEvent,
             onBackClick = onBackClick,
         )
     }

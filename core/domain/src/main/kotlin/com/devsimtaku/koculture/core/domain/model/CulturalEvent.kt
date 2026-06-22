@@ -1,5 +1,8 @@
 package com.devsimtaku.koculture.core.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CulturalEvent(
     val codeName: String,
     val district: String,

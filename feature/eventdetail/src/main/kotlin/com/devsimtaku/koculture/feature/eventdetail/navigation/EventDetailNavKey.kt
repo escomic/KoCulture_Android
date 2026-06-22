@@ -1,7 +1,10 @@
 package com.devsimtaku.koculture.feature.eventdetail.navigation
 
 import androidx.navigation3.runtime.NavKey
+import com.devsimtaku.koculture.core.domain.model.CulturalEvent
 import kotlinx.serialization.Serializable
 
 @Serializable
-object EventDetailNavKey : NavKey
+data class EventDetailNavKey(
+    val culturalEvent: CulturalEvent,
+) : NavKey

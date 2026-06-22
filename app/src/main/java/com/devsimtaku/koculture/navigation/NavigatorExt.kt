@@ -8,6 +8,8 @@ fun Navigator.navigateToEventDetail(
     event: CulturalEvent,
 ) {
     navigate(
-        key = EventDetailNavKey,
+        key = EventDetailNavKey(
+            culturalEvent = event,
+        ),
     )
 }

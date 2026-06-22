@@ -34,6 +34,7 @@ android {
 
 dependencies {
     implementation(projects.core.domain)
+    implementation(libs.androidx.browser)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 }
