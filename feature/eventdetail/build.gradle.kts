@@ -1,9 +1,24 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+}
+
+fun getNaverMapNcpKeyId(): String {
+    val envKey = System.getenv("NAVER_MAP_NCP_KEY_ID")
+    if (!envKey.isNullOrEmpty()) return envKey
+
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(localPropertiesFile.inputStream())
+        return localProperties.getProperty("naverMapNcpKeyId") ?: ""
+    }
+    return ""
 }
 
 android {
@@ -19,6 +34,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        manifestPlaceholders["naverMapNcpKeyId"] = getNaverMapNcpKeyId()
     }
 
     buildTypes {

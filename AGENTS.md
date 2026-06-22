@@ -4,7 +4,8 @@
 
 - 이 프로젝트는 Android/Kotlin 기반의 멀티모듈 앱이다.
 - 기본 대화와 문서는 한국어로 작성한다.
-- 코드의 패키지명, 클래스명, 함수명, 변수명, 주석은 영어를 유지한다.
+- 코드의 패키지명, 클래스명, 함수명, 변수명은 영어를 유지한다.
+- 코드 주석은 영어 또는 한국어를 사용할 수 있다. 단, 불필요한 주석은 피하고 맥락 보충이 필요한 경우에만 작성한다.
 - Android 권장 앱 아키텍처를 따른다.
 - 화면 상태 관리는 MVI 패턴을 기본으로 한다.
 - 기존 모듈 경계와 의존 방향을 우선한다. 새 기능을 추가할 때는 현재 구조를 먼저 확인하고 같은 패턴으로 확장한다.
@@ -68,6 +69,11 @@ feature:eventdetail
 - 여러 feature에서 재사용 가능한 UI/platform helper를 둔다.
 - 외부 URL 열기는 `core:ui`의 `browser/UrlLauncher.kt`에 있는 `Context.openUrl(url: String)`을 사용한다.
 - `openUrl()`은 URL 양끝 공백 제거, scheme 보정, CustomTabs 우선 실행, `Intent.ACTION_VIEW` fallback을 담당한다.
+- 지도 UI와 외부 지도 앱 이동 helper는 `core:ui/map`에 둔다.
+- 지도 화면은 `CultureMap(coordinate, provider)`를 통해 사용하고, 기본 provider는 `MapProvider.Naver`이다.
+- Naver 지도 구현은 `NaverCultureMap` 내부에 격리한다. Compose에서는 `AndroidView`로 `MapView`를 붙이고, `MapView` release는 `DisposableEffect.onDispose`에서 처리한다.
+- 상세 화면처럼 스크롤 컨테이너 안에 지도를 넣을 때는 지도 제스처와 부모 스크롤 충돌을 고려한다.
+- 외부 지도 앱 이동은 `Context.getExternalMapDestination()`으로 provider별 destination을 얻고 `Context.openExternalMap()`으로 실행한다.
 
 ### core:designsystem
 
@@ -94,6 +100,11 @@ feature:eventdetail
 - 상세 이미지에는 Coil3 `AsyncImage`를 사용하고, 원본 비율이 왜곡되지 않도록 처리한다.
 - 상세 URL, 기관 URL 같은 외부 링크는 `Context.openUrl()`을 통해 연다.
 - 상세 row 값은 표시/링크 처리 전에 양끝 공백을 제거한다.
+- 위치 섹션은 운영 정보와 링크 섹션 사이에 배치한다.
+- 위치 섹션에는 `CulturalEvent.place`를 제목과 지도 사이에 표시하고, 위도/경도 문자열은 사용자에게 직접 노출하지 않는다.
+- 지도는 `CulturalEvent.latitude`, `CulturalEvent.longitude`를 `MapCoordinate`로 변환할 수 있을 때만 표시한다.
+- "지도에서 크게 보기" 동작은 feature에서 버튼을 제공하되, 실제 외부 지도 destination 생성과 실행은 `core:ui/map` helper를 사용한다.
+- 네이버 지도 SDK 키는 `feature:eventdetail` manifest placeholder로 주입한다. `NAVER_MAP_NCP_KEY_ID` 환경 변수 또는 `local.properties`의 `naverMapNcpKeyId`를 사용하고, 키 값을 직접 커밋하지 않는다.
 
 ## 패키지 규칙
 

@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,6 +41,10 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.devsimtaku.koculture.core.domain.model.CulturalEvent
 import com.devsimtaku.koculture.core.ui.browser.openUrl
+import com.devsimtaku.koculture.core.ui.map.CultureMap
+import com.devsimtaku.koculture.core.ui.map.MapCoordinate
+import com.devsimtaku.koculture.core.ui.map.getExternalMapDestination
+import com.devsimtaku.koculture.core.ui.map.openExternalMap
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,8 +170,14 @@ private fun EventDetailContent(
                 ),
             )
 
+            LocationSection(
+                latitude = culturalEvent.latitude,
+                longitude = culturalEvent.longitude,
+                place = culturalEvent.place,
+            )
+
             DetailSection(
-                title = "링크 및 위치",
+                title = "링크",
                 rows = listOf(
                     DetailRowItem(
                         label = "상세 URL",
@@ -178,9 +189,6 @@ private fun EventDetailContent(
                         value = culturalEvent.organizationLink,
                         onClick = { url -> context.openUrl(url) },
                     ),
-                    DetailRowItem("위도", culturalEvent.latitude),
-                    DetailRowItem("경도", culturalEvent.longitude),
-                    DetailRowItem("테마 코드", culturalEvent.themeCode),
                 ),
             )
 
@@ -198,6 +206,82 @@ private fun EventDetailContent(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LocationSection(
+    latitude: String,
+    longitude: String,
+    place: String,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val coordinate = coordinateOrNull(
+        latitude = latitude,
+        longitude = longitude,
+    )
+    val placeText = place.trim()
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 24.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(16.dp),
+    ) {
+        Text(
+            text = "위치",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+        )
+        if (placeText.isNotBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = placeText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        if (coordinate == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "위치 정보를 표시할 수 없습니다.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        } else {
+            CultureMap(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                coordinate = coordinate,
+            )
+            TextButton(
+                onClick = {
+                    val destination = context.getExternalMapDestination(
+                        coordinate = coordinate,
+                        label = placeText,
+                    )
+                    context.openExternalMap(destination)
+                },
+            ) {
+                Text(text = "지도에서 크게 보기")
             }
         }
     }
@@ -323,6 +407,23 @@ private fun dateRange(culturalEvent: CulturalEvent): String {
         .distinct()
         .joinToString(separator = " ~ ")
         .ifBlank { culturalEvent.date }
+}
+
+private fun coordinateOrNull(
+    latitude: String,
+    longitude: String,
+): MapCoordinate? {
+    val latitudeValue = latitude.trim().toDoubleOrNull()
+    val longitudeValue = longitude.trim().toDoubleOrNull()
+
+    if (latitudeValue == null || longitudeValue == null) {
+        return null
+    }
+
+    return MapCoordinate(
+        latitude = latitudeValue,
+        longitude = longitudeValue,
+    )
 }
 
 private fun place(culturalEvent: CulturalEvent): String {
