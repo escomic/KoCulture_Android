@@ -37,6 +37,7 @@ feature:eventdetail
 - 예: `CulturalEvent`, `KoCultureApiErrorCode`, `KoCultureApiException`, `CulturalEventRepository`.
 - Android framework, Retrofit DTO, DataSource 구현에 의존하지 않는다.
 - feature 모듈은 가능하면 domain 모델과 interface만 바라본다.
+- Navigation3 `NavKey`로 전달해야 하는 domain model은 `kotlinx.serialization.Serializable` 적용 여부를 함께 확인한다.
 
 ### core:data
 
@@ -64,6 +65,9 @@ feature:eventdetail
 - 공통 UI infrastructure를 둔다.
 - 현재 MVI 기반 `BaseViewModel<State, Event, Effect>`가 있다.
 - feature ViewModel은 `BaseViewModel`을 상속하고 `UiState`, `UiEvent`, `UiEffect` contract를 명시한다.
+- 여러 feature에서 재사용 가능한 UI/platform helper를 둔다.
+- 외부 URL 열기는 `core:ui`의 `browser/UrlLauncher.kt`에 있는 `Context.openUrl(url: String)`을 사용한다.
+- `openUrl()`은 URL 양끝 공백 제거, scheme 보정, CustomTabs 우선 실행, `Intent.ACTION_VIEW` fallback을 담당한다.
 
 ### core:designsystem
 
@@ -83,8 +87,13 @@ feature:eventdetail
 ### feature:eventdetail
 
 - 문화행사 상세 화면을 담당한다.
-- 현재는 상세 navigation 대상 화면으로 구성되어 있다.
-- 상세에 필요한 데이터 전달 방식은 app navigation 확장과 feature boundary를 고려해서 결정한다.
+- 별도 상세 API가 없으므로 서울 문화행사 리스트에서 선택한 `CulturalEvent`를 기반으로 상세 화면을 구성한다.
+- `EventDetailNavKey`는 선택된 `CulturalEvent`를 포함한다.
+- app 계층의 `NavigatorExt.navigateToEventDetail(event: CulturalEvent)`에서 상세 화면으로 데이터를 전달한다.
+- 상세 화면은 이미지, 제목, 카테고리, 유료/무료 여부, 기간, 시간, 장소, 요금, 대상, 문의, 운영 기관, 출연, 프로그램, 티켓, 링크, 위치 정보, 소개 등 `CulturalEvent`에서 표현 가능한 정보를 우선 노출한다.
+- 상세 이미지에는 Coil3 `AsyncImage`를 사용하고, 원본 비율이 왜곡되지 않도록 처리한다.
+- 상세 URL, 기관 URL 같은 외부 링크는 `Context.openUrl()`을 통해 연다.
+- 상세 row 값은 표시/링크 처리 전에 양끝 공백을 제거한다.
 
 ## 패키지 규칙
 
