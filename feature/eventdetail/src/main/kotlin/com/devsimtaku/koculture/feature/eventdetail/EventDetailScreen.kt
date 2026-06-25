@@ -29,11 +29,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,6 +50,8 @@ import com.devsimtaku.koculture.core.ui.map.CultureMap
 import com.devsimtaku.koculture.core.ui.map.MapCoordinate
 import com.devsimtaku.koculture.core.ui.map.getExternalMapDestination
 import com.devsimtaku.koculture.core.ui.map.openExternalMap
+import com.devsimtaku.koculture.core.ui.phone.extractPhoneNumbers
+import com.devsimtaku.koculture.core.ui.phone.openPhoneDialer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,7 +162,11 @@ private fun EventDetailContent(
                     DetailRowItem("장소", place(culturalEvent)),
                     DetailRowItem("요금", culturalEvent.fee),
                     DetailRowItem("대상", culturalEvent.targetUser),
-                    DetailRowItem("문의", culturalEvent.inquiry),
+                    DetailRowItem(
+                        label = "문의",
+                        value = culturalEvent.inquiry,
+                        linkPhoneNumbers = true,
+                    ),
                 ),
             )
 
@@ -339,6 +350,7 @@ private fun DetailSection(
                 onClick = row.onClick?.let { onClick ->
                     { onClick(row.value) }
                 },
+                linkPhoneNumbers = row.linkPhoneNumbers,
             )
             if (index != visibleRows.lastIndex) {
                 HorizontalDivider(
@@ -355,6 +367,7 @@ private fun DetailRow(
     label: String,
     value: String,
     onClick: (() -> Unit)?,
+    linkPhoneNumbers: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -367,36 +380,83 @@ private fun DetailRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
         )
-        Text(
-            modifier = Modifier
-                .weight(1f)
-                .then(
-                    if (onClick == null) {
-                        Modifier
-                    } else {
-                        Modifier.clickable(onClick = onClick)
-                    },
-                ),
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (onClick == null) {
-                MaterialTheme.colorScheme.onSurface
-            } else {
-                MaterialTheme.colorScheme.primary
-            },
-            textDecoration = if (onClick == null) {
-                TextDecoration.None
-            } else {
-                TextDecoration.Underline
-            },
-        )
+        if (linkPhoneNumbers) {
+            PhoneNumberText(
+                modifier = Modifier.weight(1f),
+                value = value,
+            )
+        } else {
+            Text(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(
+                        if (onClick == null) {
+                            Modifier
+                        } else {
+                            Modifier.clickable(onClick = onClick)
+                        },
+                    ),
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (onClick == null) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
+                textDecoration = if (onClick == null) {
+                    TextDecoration.None
+                } else {
+                    TextDecoration.Underline
+                },
+            )
+        }
     }
+}
+
+@Composable
+private fun PhoneNumberText(
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val linkColor = MaterialTheme.colorScheme.primary
+    val annotatedValue = remember(value, context, linkColor) {
+        buildAnnotatedString {
+            append(value)
+            value.extractPhoneNumbers().forEach { phoneNumber ->
+                addLink(
+                    clickable = LinkAnnotation.Clickable(
+                        tag = phoneNumber.number,
+                        styles = TextLinkStyles(
+                            style = SpanStyle(
+                                color = linkColor,
+                                textDecoration = TextDecoration.Underline,
+                            ),
+                        ),
+                        linkInteractionListener = {
+                            context.openPhoneDialer(phoneNumber.number)
+                        },
+                    ),
+                    start = phoneNumber.range.first,
+                    end = phoneNumber.range.last + 1,
+                )
+            }
+        }
+    }
+
+    Text(
+        modifier = modifier,
+        text = annotatedValue,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
 }
 
 private class DetailRowItem(
     val label: String,
     value: String,
     val onClick: ((String) -> Unit)? = null,
+    val linkPhoneNumbers: Boolean = false,
 ) {
     val value: String = value.trim()
 }
