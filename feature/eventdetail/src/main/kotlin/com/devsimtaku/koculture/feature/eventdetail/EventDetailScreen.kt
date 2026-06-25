@@ -462,11 +462,11 @@ private class DetailRowItem(
 }
 
 private fun dateRange(culturalEvent: CulturalEvent): String {
-    return listOf(culturalEvent.startDate, culturalEvent.endDate)
-        .filter { it.isNotBlank() }
-        .distinct()
-        .joinToString(separator = " ~ ")
-        .ifBlank { culturalEvent.date }
+    return formatDateRange(
+        startDate = culturalEvent.startDate,
+        endDate = culturalEvent.endDate,
+        fallbackDate = culturalEvent.date,
+    )
 }
 
 private fun coordinateOrNull(
