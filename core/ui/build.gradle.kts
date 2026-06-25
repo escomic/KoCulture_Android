@@ -41,4 +41,6 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.naver.map.sdk)
+
+    testImplementation(libs.junit)
 }
