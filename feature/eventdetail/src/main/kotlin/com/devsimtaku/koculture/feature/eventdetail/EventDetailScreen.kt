@@ -1,5 +1,6 @@
 package com.devsimtaku.koculture.feature.eventdetail
 
+import androidx.compose.animation.EnterExitState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import coil3.compose.AsyncImage
 import com.devsimtaku.koculture.core.domain.model.CulturalEvent
 import com.devsimtaku.koculture.core.ui.browser.openUrl
@@ -230,6 +232,9 @@ private fun LocationSection(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val animatedContentScope = LocalNavAnimatedContentScope.current
+    val isMapVisible =
+        animatedContentScope.transition.targetState != EnterExitState.PostExit
     val coordinate = coordinateOrNull(
         latitude = latitude,
         longitude = longitude,
@@ -282,6 +287,7 @@ private fun LocationSection(
                     .clip(RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 coordinate = coordinate,
+                isVisible = isMapVisible,
             )
             TextButton(
                 onClick = {

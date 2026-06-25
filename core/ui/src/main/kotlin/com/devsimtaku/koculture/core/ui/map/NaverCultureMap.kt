@@ -1,6 +1,7 @@
 package com.devsimtaku.koculture.core.ui.map
 
 import android.view.MotionEvent
+import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +22,7 @@ import com.naver.maps.map.overlay.Marker
 internal fun NaverCultureMap(
     coordinate: MapCoordinate,
     modifier: Modifier = Modifier,
+    isVisible: Boolean = true,
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -51,6 +53,7 @@ internal fun NaverCultureMap(
 
             onDispose {
                 lifecycle.removeObserver(observer)
+                mapView.visibility = View.INVISIBLE
                 mapView.onPause()
                 mapView.onStop()
                 mapView.onDestroy()
@@ -79,6 +82,13 @@ internal fun NaverCultureMap(
             MapView(it).also { createdMapView ->
                 createdMapView.onCreate(null)
                 mapViewState.value = createdMapView
+            }
+        },
+        update = { updatedMapView ->
+            updatedMapView.visibility = if (isVisible) {
+                View.VISIBLE
+            } else {
+                View.INVISIBLE
             }
         },
     )
